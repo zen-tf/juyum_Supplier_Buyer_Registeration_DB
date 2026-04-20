@@ -1,0 +1,67 @@
+_schema-version: 3.3.0
+ID: juyum-supplier-buyer-registration-db
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: juyum-supplier-buyer-registration-db-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: juyum-supplier-buyer-registration-db-auth
+      - name: juyum-supplier-buyer-registration-db-db
+      - name: juyum-supplier-buyer-registration-db-destination
+
+  - name: juyum-supplier-buyer-registration-db-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: juyum-supplier-buyer-registration-db-db
+
+resources:
+  - name: juyum-supplier-buyer-registration-db-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      service-name: juyum-reg-auth  # <-- 추가: 수동으로 만든 XSUAA 이름
+      path: ./xs-security.json
+      config:
+        xsappname: juyum-supplier-buyer-registration-db-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+            
+  - name: juyum-supplier-buyer-registration-db-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+      service-name: juyum-SupplierBuyer-Registration # <-- 추가: 수동으로 연결한 HANA DB 이름
+      
+  - name: juyum-supplier-buyer-registration-db-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      service-name: juyum-reg-destination # <-- 추가: 수동으로 만든 Destination 이름
