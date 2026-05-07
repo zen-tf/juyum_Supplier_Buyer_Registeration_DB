@@ -29,7 +29,7 @@ module.exports = cds.service.impl(async function() {
             status: 'INIT'
         });
 
-        return "신규 등록 프로세스를 시작합니다. 등록 주체가 구매 업체(Buyer)입니까, 아니면 공급 업체(Supplier)입니까?";
+        return "신규 등록 프로세스를 시작합니다.";
     });
 
     // 3. 다음 단계 안내 (세션 재개용)
@@ -44,11 +44,11 @@ module.exports = cds.service.impl(async function() {
 
         switch (session.status) {
             case 'INIT':
-                return "이전 대화에서 '등록 주체 확인' 단계까지 진행되었습니다. Buyer입니까, Supplier입니까?";
+                return "현재 단계는 '등록 주체 확인' 단계입니다. 등록 주체가 구매 업체(Buyer)입니까, 아니면 공급 업체(Supplier)입니까?";
             case 'SUBJECT_CONFIRMED':
-                return `등록 주체가 ${session.roleType}로 확인되었습니다. 다음으로 대상 업체가 국내 업체인지 해외 업체인지 알려주세요.`;
+                return "현재 단계는 '업체 국가 구분' 단계입니다. 현재 등록 주체가 ${session.roleType}인 것으로 확인되었습니다. 다음으로 대상 업체가 국내 업체인지 해외 업체인지 알려주세요.";
             case 'COUNTRY_CONFIRMED':
-                return `업체 정보 수집이 완료되었습니다. 최종 등록을 진행할까요?`;
+                return "현재 단계는 '업체 최종 등록' 단계입니다. 현재 업체 정보 수집이 완료되었습니다. 최종 등록을 진행할까요?";
             default:
                 return "상태를 확인할 수 없습니다. 초기화 후 다시 시작하는 것을 추천합니다.";
         }
